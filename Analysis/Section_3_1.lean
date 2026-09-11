@@ -164,11 +164,27 @@ theorem SetTheory.Set.not_mem_empty : ∀ x, x ∉ (∅:Set) := emptyset_mem
 
 /-- Empty set has no elements -/
 theorem SetTheory.Set.eq_empty_iff_forall_notMem {X:Set} : X = ∅ ↔ (∀ x, x ∉ X) := by
-  sorry
+  constructor
+  . intro h
+    rw [h]
+    simp
+  intro h
+  apply extensionality
+  intro x
+  specialize h x
+  change x ∈ X ↔ x ∈ (∅ : Set)
+  simp
+  exact h
 
 /-- Empty set is unique -/
 theorem SetTheory.Set.empty_unique : ∃! (X:Set), ∀ x, x ∉ X := by
-  sorry
+  dsimp [ExistsUnique]
+  use ∅
+  constructor
+  . simp
+  intro y
+  rw [← eq_empty_iff_forall_notMem]
+  simp
 
 /-- Lemma 3.1.5 (Single choice) -/
 lemma SetTheory.Set.nonempty_def {X:Set} (h: X ≠ ∅) : ∃ x, x ∈ X := by
@@ -231,23 +247,70 @@ theorem SetTheory.Set.mem_triple (x a b c:Object) : x ∈ ({a,b,c}:Set) ↔ (x =
   simp [Insert.insert, mem_union, mem_singleton]
 
 /-- Remark 3.1.9 -/
-theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a := by sorry
+theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a := by
+  dsimp [ExistsUnique]
+  use ({a} : Set)
+  constructor
+  . simp
+  intro Y hY
+  ext x
+  simp
+  specialize hY x
+  exact hY
 
 /-- Remark 3.1.9 -/
-theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by sorry
+theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by
+  dsimp [ExistsUnique]
+  use ({a, b} : Set)
+  constructor
+  . simp
+  intro X hX
+  ext x
+  specialize hX x
+  simp
+  exact hX
 
 /-- Remark 3.1.9 -/
-theorem SetTheory.Set.pair_comm (a b:Object) : ({a,b}:Set) = {b,a} := by sorry
+theorem SetTheory.Set.pair_comm (a b:Object) : ({a,b}:Set) = {b,a} := by
+  ext x
+  simp
+  tauto
 
 /-- Remark 3.1.9 -/
 @[simp]
 theorem SetTheory.Set.pair_self (a:Object) : ({a,a}:Set) = {a} := by
-  sorry
+  ext x
+  simp
 
 /-- Exercise 3.1.1 -/
 theorem SetTheory.Set.pair_eq_pair {a b c d:Object} (h: ({a,b}:Set) = {c,d}) :
     a = c ∧ b = d ∨ a = d ∧ b = c := by
-  sorry
+  have he : ∀ x, x ∈ ({a, b} : Set) ↔ x ∈ ({c, d} : Set) := by rw [h]; simp
+  have hec := he
+  specialize hec a
+  by_cases hac : a = c
+  . have hecc := he
+    specialize hecc b
+    rw [← hac] at hecc
+    have hbd : b = d := by
+      rw [mem_pair, mem_pair] at hecc
+      simp at hecc
+      by_cases hba : b = a
+      . specialize he d
+        rw [hba, hac] at he
+        simp at he
+        rw [he, hba, hac]
+      tauto
+    tauto
+  have had : a = d := by
+    rw [mem_pair, mem_pair] at hec
+    simp at hec
+    tauto
+  have hbc : b = c := by
+    specialize he c
+    rw [mem_pair, mem_pair] at he
+    tauto
+  tauto
 
 abbrev SetTheory.Set.empty : Set := ∅
 abbrev SetTheory.Set.singleton_empty : Set := {(empty: Object)}
